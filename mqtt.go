@@ -21,6 +21,12 @@ type Header struct {
 	QosLevel QosLevel
 }
 
+func NewHeader(dupFlag bool, qos QosLevel, retain bool) Header {
+    return Header{
+        DupFlag: dupFlag, QosLevel: qos, Retain: retain,
+    }
+}
+
 func (hdr *Header) Encode(w io.Writer, msgType MessageType, remainingLength int32) error {
 	buf := new(bytes.Buffer)
 	err := hdr.encodeInto(buf, msgType, remainingLength)
