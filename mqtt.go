@@ -24,7 +24,8 @@ func (hdr *Header) Encode(w io.Writer, msgType MessageType, remainingLength int3
 	return err
 }
 
-func (hdr *Header) encodeInto(buf *bytes.Buffer, msgType MessageType, remainingLength int32) error {
+func (hdr *Header) encodeInto(buf *bytes.Buffer, msgType MessageType,
+	remainingLength int32) error {
 	if !hdr.QosLevel.IsValid() {
 		return badQosError
 	}
