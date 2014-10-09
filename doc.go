@@ -69,4 +69,4 @@
 //
 // * The payload size (and PUBLISH variable header) can be no more than 256MiB
 // minus 1 byte. This is a specified limitation of MQTT v3.1 itself.
-package mqtt
+package mqttmsg

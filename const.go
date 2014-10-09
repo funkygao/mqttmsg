@@ -1,4 +1,4 @@
-package mqtt
+package mqttmsg
 
 const (
 	// Maximum payload size in bytes (256MiB - 1B).

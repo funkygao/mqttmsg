@@ -1,5 +1,5 @@
-# mqtt
+# mqttmsg
 
-An MQTT encoder and decoder,written in Golang.
+An MQTT encoder and decoder.
 
 This library was modified heavily from https://github.com/huin/mqtt
