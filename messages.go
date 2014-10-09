@@ -80,26 +80,6 @@ type Message interface {
 	Decode(r io.Reader, hdr Header, packetRemaining int32, config DecoderConfig) error
 }
 
-// MessageType constants.
-const (
-	MsgConnect = MessageType(iota + 1)
-	MsgConnAck
-	MsgPublish
-	MsgPubAck
-	MsgPubRec
-	MsgPubRel
-	MsgPubComp
-	MsgSubscribe
-	MsgSubAck
-	MsgUnsubscribe
-	MsgUnsubAck
-	MsgPingReq
-	MsgPingResp
-	MsgDisconnect
-
-	msgTypeFirstInvalid
-)
-
 type MessageType uint8
 
 // IsValid returns true if the MessageType value is valid.
