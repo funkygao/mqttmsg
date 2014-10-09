@@ -16,11 +16,43 @@ type Message interface {
 	Decode(r io.Reader, hdr Header, packetRemaining int32, config DecoderConfig) error
 }
 
-type MessageType uint8
+// NewMessage creates an instance of a Message value for the given message
+// type. An error is returned if msgType is invalid.
+func NewMessage(msgType MessageType) (msg Message, err error) {
+	switch msgType {
+	case MsgConnect:
+		msg = new(Connect)
+	case MsgConnAck:
+		msg = new(ConnAck)
+	case MsgPublish:
+		msg = new(Publish)
+	case MsgPubAck:
+		msg = new(PubAck)
+	case MsgPubRec:
+		msg = new(PubRec)
+	case MsgPubRel:
+		msg = new(PubRel)
+	case MsgPubComp:
+		msg = new(PubComp)
+	case MsgSubscribe:
+		msg = new(Subscribe)
+	case MsgUnsubAck:
+		msg = new(UnsubAck)
+	case MsgSubAck:
+		msg = new(SubAck)
+	case MsgUnsubscribe:
+		msg = new(Unsubscribe)
+	case MsgPingReq:
+		msg = new(PingReq)
+	case MsgPingResp:
+		msg = new(PingResp)
+	case MsgDisconnect:
+		msg = new(Disconnect)
+	default:
+		return nil, badMsgTypeError
+	}
 
-// IsValid returns true if the MessageType value is valid.
-func (mt MessageType) IsValid() bool {
-	return mt >= MsgConnect && mt < msgTypeFirstInvalid
+	return
 }
 
 func writeMessage(w io.Writer, msgType MessageType, hdr *Header, payloadBuf *bytes.Buffer, extraLength int32) error {

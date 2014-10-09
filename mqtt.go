@@ -5,6 +5,13 @@ import (
 	"io"
 )
 
+type MessageType uint8
+
+// IsValid returns true if the MessageType value is valid.
+func (mt MessageType) IsValid() bool {
+	return mt >= MsgConnect && mt < msgTypeFirstInvalid
+}
+
 // Header contains the common attributes of all messages. Some attributes are
 // not applicable to some message types.
 // MessageType and remaining length is outside of Header
@@ -20,6 +27,7 @@ func (hdr *Header) Encode(w io.Writer, msgType MessageType, remainingLength int3
 	if err != nil {
 		return err
 	}
+
 	_, err = w.Write(buf.Bytes())
 	return err
 }
@@ -33,28 +41,33 @@ func (hdr *Header) encodeInto(buf *bytes.Buffer, msgType MessageType,
 		return badMsgTypeError
 	}
 
-	val := byte(msgType) << 4
-	val |= (boolToByte(hdr.DupFlag) << 3)
-	val |= byte(hdr.QosLevel) << 1
-	val |= boolToByte(hdr.Retain)
-	buf.WriteByte(val)
+	byte1 := byte(msgType) << 4
+	byte1 |= (boolToByte(hdr.DupFlag) << 3)
+	byte1 |= byte(hdr.QosLevel) << 1
+	byte1 |= boolToByte(hdr.Retain)
+	buf.WriteByte(byte1)
+
 	encodeLength(remainingLength, buf)
 	return nil
 }
 
-func (hdr *Header) Decode(r io.Reader) (msgType MessageType, remainingLength int32, err error) {
+func (hdr *Header) Decode(r io.Reader) (msgType MessageType,
+	remainingLength int32, err error) {
 	defer func() {
 		err = recoverError(err, recover())
 	}()
 
 	var buf [1]byte
-
 	if _, err = io.ReadFull(r, buf[:]); err != nil {
 		return
 	}
 
 	byte1 := buf[0]
 	msgType = MessageType(byte1 & 0xF0 >> 4)
+	if !msgType.IsValid() {
+		err = badMsgTypeError
+		return
+	}
 
 	*hdr = Header{
 		DupFlag:  byte1&0x08 > 0,
@@ -63,7 +76,6 @@ func (hdr *Header) Decode(r io.Reader) (msgType MessageType, remainingLength int
 	}
 
 	remainingLength = decodeLength(r)
-
 	return
 }
 
@@ -111,9 +123,11 @@ func (c *ValueConfig) MakePayload(msg *Publish, r io.Reader, n int) (Payload, er
 // how to decode messages, nil indicates that the DefaultDecoderConfig should
 // be used.
 func DecodeOneMessage(r io.Reader, config DecoderConfig) (msg Message, err error) {
-	var hdr Header
-	var msgType MessageType
-	var packetRemaining int32
+	var (
+		hdr             Header
+		msgType         MessageType
+		packetRemaining int32
+	)
 	msgType, packetRemaining, err = hdr.Decode(r)
 	if err != nil {
 		return
@@ -129,43 +143,4 @@ func DecodeOneMessage(r io.Reader, config DecoderConfig) (msg Message, err error
 	}
 
 	return msg, msg.Decode(r, hdr, packetRemaining, config)
-}
-
-// NewMessage creates an instance of a Message value for the given message
-// type. An error is returned if msgType is invalid.
-func NewMessage(msgType MessageType) (msg Message, err error) {
-	switch msgType {
-	case MsgConnect:
-		msg = new(Connect)
-	case MsgConnAck:
-		msg = new(ConnAck)
-	case MsgPublish:
-		msg = new(Publish)
-	case MsgPubAck:
-		msg = new(PubAck)
-	case MsgPubRec:
-		msg = new(PubRec)
-	case MsgPubRel:
-		msg = new(PubRel)
-	case MsgPubComp:
-		msg = new(PubComp)
-	case MsgSubscribe:
-		msg = new(Subscribe)
-	case MsgUnsubAck:
-		msg = new(UnsubAck)
-	case MsgSubAck:
-		msg = new(SubAck)
-	case MsgUnsubscribe:
-		msg = new(Unsubscribe)
-	case MsgPingReq:
-		msg = new(PingReq)
-	case MsgPingResp:
-		msg = new(PingResp)
-	case MsgDisconnect:
-		msg = new(Disconnect)
-	default:
-		return nil, badMsgTypeError
-	}
-
-	return
 }
