@@ -5,13 +5,13 @@ import (
 )
 
 var (
-	badMsgTypeError        = errors.New("mqtt: message type is invalid")
-	badQosError            = errors.New("mqtt: QoS is invalid")
-	badWillQosError        = errors.New("mqtt: will QoS is invalid")
-	badLengthEncodingError = errors.New("mqtt: remaining length field exceeded maximum of 4 bytes")
-	badReturnCodeError     = errors.New("mqtt: is invalid")
-	dataExceedsPacketError = errors.New("mqtt: data exceeds packet length")
-	msgTooLongError        = errors.New("mqtt: message is too long")
+	badMsgTypeError        = errors.New("Invalid message type")
+	badQosError            = errors.New("Invalid QoS level")
+	badWillQosError        = errors.New("Invalid will QoS")
+	badLengthEncodingError = errors.New("remaining length field exceeded maximum of 4 bytes")
+	badReturnCodeError     = errors.New("Invalid return code")
+	dataExceedsPacketError = errors.New("data exceeds packet length")
+	msgTooLongError        = errors.New("message is too long")
 )
 
 // panicErr wraps an error that caused a problem that needs to bail out of the

@@ -1,8 +1,70 @@
 package mqtt
 
 import (
+	"bytes"
 	"io"
 )
+
+// Header contains the common attributes of all messages. Some attributes are
+// not applicable to some message types.
+// MessageType and remaining length is outside of Header
+type Header struct {
+	DupFlag  bool
+	Retain   bool
+	QosLevel QosLevel
+}
+
+func (hdr *Header) Encode(w io.Writer, msgType MessageType, remainingLength int32) error {
+	buf := new(bytes.Buffer)
+	err := hdr.encodeInto(buf, msgType, remainingLength)
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(buf.Bytes())
+	return err
+}
+
+func (hdr *Header) encodeInto(buf *bytes.Buffer, msgType MessageType, remainingLength int32) error {
+	if !hdr.QosLevel.IsValid() {
+		return badQosError
+	}
+	if !msgType.IsValid() {
+		return badMsgTypeError
+	}
+
+	val := byte(msgType) << 4
+	val |= (boolToByte(hdr.DupFlag) << 3)
+	val |= byte(hdr.QosLevel) << 1
+	val |= boolToByte(hdr.Retain)
+	buf.WriteByte(val)
+	encodeLength(remainingLength, buf)
+	return nil
+}
+
+func (hdr *Header) Decode(r io.Reader) (msgType MessageType, remainingLength int32, err error) {
+	defer func() {
+		err = recoverError(err, recover())
+	}()
+
+	var buf [1]byte
+
+	if _, err = io.ReadFull(r, buf[:]); err != nil {
+		return
+	}
+
+	byte1 := buf[0]
+	msgType = MessageType(byte1 & 0xF0 >> 4)
+
+	*hdr = Header{
+		DupFlag:  byte1&0x08 > 0,
+		QosLevel: QosLevel(byte1 & 0x06 >> 1),
+		Retain:   byte1&0x01 > 0,
+	}
+
+	remainingLength = decodeLength(r)
+
+	return
+}
 
 type QosLevel uint8
 

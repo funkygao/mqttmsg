@@ -1,6 +1,11 @@
 package mqtt
 
 const (
+	// Maximum payload size in bytes (256MiB - 1B).
+	MaxPayloadSize = (1 << (4 * 7)) - 1
+)
+
+const (
 	RetCodeAccepted = ReturnCode(iota)
 	RetCodeUnacceptableProtocolVersion
 	RetCodeIdentifierRejected
