@@ -30,9 +30,9 @@ const (
 	MsgConnAck
 	MsgPublish
 	MsgPubAck
-	MsgPubRec
-	MsgPubRel
-	MsgPubComp
+	MsgPubRec  // publish received (assured delivery part 1)
+	MsgPubRel  // publish release (assured delivery part 2)
+	MsgPubComp // publish complete (assured delivery part 3)
 	MsgSubscribe
 	MsgSubAck
 	MsgUnsubscribe
