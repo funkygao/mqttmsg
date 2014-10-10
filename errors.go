@@ -14,6 +14,17 @@ var (
 	msgTooLongError        = errors.New("message is too long")
 )
 
+// ConnectionErrors is an array of errors corresponding to the
+// Connect return codes specified in the specification.
+var ConnectionErrors = [6]error{
+    nil, // RetCodeAccepted
+    errors.New("Connection Refused: unacceptable protocol version"), // RetCodeUnacceptableProtocolVersion
+    errors.New("Connection Refused: identifier rejected"),           // RetCodeIdentifierRejected
+    errors.New("Connection Refused: server unavailable"),            // RetCodeServerUnavailable
+    errors.New("Connection Refused: bad user name or password"),     // RetCodeBadUsernameOrPassword
+    errors.New("Connection Refused: not authorized"),                // RetCodeNotAuthorized
+}
+
 // panicErr wraps an error that caused a problem that needs to bail out of the
 // API, such that errors can be recovered and returned as errors from the
 // public API.
