@@ -14,6 +14,9 @@ type Message interface {
 	// r. Typically the values for hdr and packetRemaining will
 	// be returned from Header.Decode.
 	Decode(r io.Reader, hdr Header, packetRemaining int32, config DecoderConfig) error
+
+	// Message size in bytes
+	Bytes() int
 }
 
 // NewMessage creates an instance of a Message value for the given message
@@ -166,6 +169,11 @@ func (msg *Connect) Decode(r io.Reader, hdr Header, packetRemaining int32, confi
 	return nil
 }
 
+func (msg *Connect) Bytes() int {
+	return fixedHeaderSize + 12 + len(msg.ClientId) +
+		len(msg.WillMessage) + len(msg.WillTopic)
+}
+
 // ConnAck represents an MQTT CONNACK message.
 type ConnAck struct {
 	Header
@@ -201,6 +209,10 @@ func (msg *ConnAck) Decode(r io.Reader, hdr Header, packetRemaining int32, confi
 	return nil
 }
 
+func (msg *ConnAck) Bytes() int {
+	return fixedHeaderSize + 1
+}
+
 // Publish represents an MQTT PUBLISH message.
 type Publish struct {
 	Header
@@ -222,6 +234,10 @@ func (msg *Publish) Encode(w io.Writer) (err error) {
 	}
 
 	return msg.Payload.WritePayload(w)
+}
+
+func (msg *Publish) Bytes() int {
+	return fixedHeaderSize + len(msg.TopicName) + 2 + msg.Payload.Size()
 }
 
 func (msg *Publish) Decode(r io.Reader, hdr Header, packetRemaining int32, config DecoderConfig) (err error) {
@@ -260,6 +276,10 @@ func (msg *PubAck) Decode(r io.Reader, hdr Header, packetRemaining int32, config
 	return decodeAckCommon(r, packetRemaining, &msg.MessageId, config)
 }
 
+func (msg *PubAck) Bytes() int {
+	return fixedHeaderSize + 2
+}
+
 // PubRec represents an MQTT PUBREC message.
 type PubRec struct {
 	Header
@@ -273,6 +293,10 @@ func (msg *PubRec) Encode(w io.Writer) error {
 func (msg *PubRec) Decode(r io.Reader, hdr Header, packetRemaining int32, config DecoderConfig) (err error) {
 	msg.Header = hdr
 	return decodeAckCommon(r, packetRemaining, &msg.MessageId, config)
+}
+
+func (msg *PubRec) Bytes() int {
+	return fixedHeaderSize + 2
 }
 
 // PubRel represents an MQTT PUBREL message.
@@ -290,6 +314,10 @@ func (msg *PubRel) Decode(r io.Reader, hdr Header, packetRemaining int32, config
 	return decodeAckCommon(r, packetRemaining, &msg.MessageId, config)
 }
 
+func (msg *PubRel) Bytes() int {
+	return fixedHeaderSize + 2
+}
+
 // PubComp represents an MQTT PUBCOMP message.
 type PubComp struct {
 	Header
@@ -303,6 +331,10 @@ func (msg *PubComp) Encode(w io.Writer) error {
 func (msg *PubComp) Decode(r io.Reader, hdr Header, packetRemaining int32, config DecoderConfig) (err error) {
 	msg.Header = hdr
 	return decodeAckCommon(r, packetRemaining, &msg.MessageId, config)
+}
+
+func (msg *PubComp) Bytes() int {
+	return fixedHeaderSize + 2
 }
 
 // Subscribe represents an MQTT SUBSCRIBE message.
@@ -352,6 +384,14 @@ func (msg *Subscribe) Decode(r io.Reader, hdr Header, packetRemaining int32, con
 	return nil
 }
 
+func (msg *Subscribe) Bytes() int {
+	s := fixedHeaderSize + 2
+	for _, tq := range msg.Topics {
+		s += len(tq.Topic) + 1
+	}
+	return s
+}
+
 // SubAck represents an MQTT SUBACK message.
 type SubAck struct {
 	Header
@@ -385,6 +425,10 @@ func (msg *SubAck) Decode(r io.Reader, hdr Header, packetRemaining int32, config
 	msg.TopicsQos = topicsQos
 
 	return nil
+}
+
+func (msg *SubAck) Bytes() int {
+	return fixedHeaderSize + 2 + len(msg.TopicsQos)
 }
 
 // Unsubscribe represents an MQTT UNSUBSCRIBE message.
@@ -425,6 +469,14 @@ func (msg *Unsubscribe) Decode(r io.Reader, hdr Header, packetRemaining int32, c
 	return nil
 }
 
+func (msg *Unsubscribe) Bytes() int {
+	s := fixedHeaderSize + 2
+	for _, t := range msg.Topics {
+		s += len(t)
+	}
+	return s
+}
+
 // UnsubAck represents an MQTT UNSUBACK message.
 type UnsubAck struct {
 	Header
@@ -438,6 +490,10 @@ func (msg *UnsubAck) Encode(w io.Writer) error {
 func (msg *UnsubAck) Decode(r io.Reader, hdr Header, packetRemaining int32, config DecoderConfig) (err error) {
 	msg.Header = hdr
 	return decodeAckCommon(r, packetRemaining, &msg.MessageId, config)
+}
+
+func (msg *UnsubAck) Bytes() int {
+	return fixedHeaderSize + 2
 }
 
 // PingReq represents an MQTT PINGREQ message.
@@ -456,6 +512,10 @@ func (msg *PingReq) Decode(r io.Reader, hdr Header, packetRemaining int32, confi
 	return nil
 }
 
+func (msg *PingReq) Bytes() int {
+	return fixedHeaderSize
+}
+
 // PingResp represents an MQTT PINGRESP message.
 type PingResp struct {
 	Header
@@ -472,6 +532,10 @@ func (msg *PingResp) Decode(r io.Reader, hdr Header, packetRemaining int32, conf
 	return nil
 }
 
+func (msg *PingResp) Bytes() int {
+	return fixedHeaderSize
+}
+
 // Disconnect represents an MQTT DISCONNECT message.
 type Disconnect struct {
 	Header
@@ -486,6 +550,10 @@ func (msg *Disconnect) Decode(r io.Reader, hdr Header, packetRemaining int32, co
 		return msgTooLongError
 	}
 	return nil
+}
+
+func (msg *Disconnect) Bytes() int {
+	return fixedHeaderSize
 }
 
 func encodeAckCommon(w io.Writer, hdr *Header, messageId uint16, msgType MessageType) error {

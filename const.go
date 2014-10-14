@@ -1,5 +1,7 @@
 package mqttmsg
 
+const fixedHeaderSize = 2
+
 const (
 	// Maximum payload size in bytes (256MiB - 1B).
 	MaxPayloadSize = (1 << (4 * 7)) - 1
