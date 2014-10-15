@@ -7,14 +7,14 @@ import (
 
 func BenchmarkEncode(b *testing.B) {
 	b.ReportAllocs()
-	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
+    data := []byte(`{"payload":{"330":{"uid":53,"march_id":330,"city_id":53,"opp_uid":0,"world_id":1,"type":"encamp","start_x":72,"start_y":64,"end_x":80,"end_y":78,"start_time":1412999095,"end_time":1412999111,"speed":1,"state":"marching","alliance_id":0}}`)
 	msg := Publish{
 		Header: Header{
 			DupFlag:  false,
 			QosLevel: QosAtLeastOnce,
 			Retain:   false,
 		},
-		TopicName: "a/b",
+		TopicName: "user/134568765",
 		MessageId: 10,
 		Payload:   BytesPayload(data),
 	}
