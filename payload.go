@@ -28,6 +28,7 @@ type Payload interface {
 // BytesPayload reads/writes a plain slice of bytes.
 type BytesPayload []byte
 
+// TODO pointer
 func (p BytesPayload) Size() int {
 	return len(p)
 }

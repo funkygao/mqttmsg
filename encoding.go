@@ -40,7 +40,7 @@ func getString(r io.Reader, packetRemaining *int32) string {
 		raiseError(dataExceedsPacketError)
 	}
 
-	b := make([]byte, strLen)
+	b := make([]byte, strLen) // TODO mem pool
 	if _, err := io.ReadFull(r, b); err != nil {
 		raiseError(err)
 	}

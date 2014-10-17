@@ -22,13 +22,15 @@ type Header struct {
 }
 
 func NewHeader(dupFlag bool, qos QosLevel, retain bool) Header {
-    return Header{
-        DupFlag: dupFlag, QosLevel: qos, Retain: retain,
-    }
+	return Header{
+		DupFlag:  dupFlag,
+		QosLevel: qos,
+		Retain:   retain,
+	}
 }
 
 func (hdr *Header) Encode(w io.Writer, msgType MessageType, remainingLength int32) error {
-	buf := new(bytes.Buffer)
+	buf := new(bytes.Buffer) // TODO mem pool
 	err := hdr.encodeInto(buf, msgType, remainingLength)
 	if err != nil {
 		return err
@@ -97,6 +99,7 @@ func (qos QosLevel) HasId() bool {
 
 type ReturnCode uint8
 
+// TODO pointer
 func (rc ReturnCode) IsValid() bool {
 	return rc >= RetCodeAccepted && rc < retCodeFirstInvalid
 }
@@ -112,8 +115,9 @@ type DecoderConfig interface {
 
 type DefaultDecoderConfig struct{}
 
+// TODO why not pointer
 func (c DefaultDecoderConfig) MakePayload(msg *Publish, r io.Reader, n int) (Payload, error) {
-	return make(BytesPayload, n), nil
+	return make(BytesPayload, n), nil // TODO use mem pool
 }
 
 // ValueConfig always returns the given Payload when MakePayload is called.

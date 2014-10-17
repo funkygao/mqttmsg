@@ -64,7 +64,7 @@ func writeMessage(w io.Writer, msgType MessageType, hdr *Header, payloadBuf *byt
 		return msgTooLongError
 	}
 
-	buf := new(bytes.Buffer)
+	buf := new(bytes.Buffer) // TODO mem pool
 	err := hdr.encodeInto(buf, msgType, int32(totalPayloadLength))
 	if err != nil {
 		return err
@@ -97,7 +97,7 @@ func (msg *Connect) Encode(w io.Writer) (err error) {
 		return badWillQosError
 	}
 
-	buf := new(bytes.Buffer)
+	buf := new(bytes.Buffer) // TODO mem pool
 
 	flags := boolToByte(msg.UsernameFlag) << 7
 	flags |= boolToByte(msg.PasswordFlag) << 6
@@ -181,7 +181,7 @@ type ConnAck struct {
 }
 
 func (msg *ConnAck) Encode(w io.Writer) (err error) {
-	buf := new(bytes.Buffer)
+	buf := new(bytes.Buffer) // TODO mem pool
 
 	buf.WriteByte(byte(0)) // Reserved byte.
 	setUint8(uint8(msg.ReturnCode), buf)
